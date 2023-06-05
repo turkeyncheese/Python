@@ -4,15 +4,15 @@ import numpy as np
 from collections import deque
 import generate
 
-WIDTH = HEIGHT = 512
-DIMENSION = 49 # only odd number dimensions
+WIDTH = HEIGHT = 768
+DIMENSION = 81 # only odd number dimensions
 SQUARESIZE = WIDTH // DIMENSION
 
 maze, entrance, exit = generate.getMaze(DIMENSION)
 entrance = (0, entrance)
 exit = (DIMENSION, exit)
 
-visitedPositions = solvedPath = []
+visitedPositions = []
 
 def main():
     p.init()
@@ -22,16 +22,20 @@ def main():
     screen.fill(p.Color("white"))
 
     drawMaze(screen)
-    running = True
+    p.display.flip()
 
-    solvedPath = solveMaze(maze, entrance, exit, screen)
-    solvedPath = [entrance] + solvedPath
+    running = True
+    solvedPath = []
 
     while running:
         for e in p.event.get():
             if e.type == p.QUIT:
                 p.quit()
                 sys.exit()
+        
+        if not solvedPath:
+            solvedPath = solveMaze(maze, entrance, exit, screen)
+            solvedPath = [entrance] + solvedPath
 
         drawMaze(screen)
         drawPath(screen, solvedPath)
@@ -67,27 +71,29 @@ def solveMaze(maze, entrance, exit, screen):
             return solvedPath
 
         visited.add(current)
-        visitedPositions = list(visited)  # Convert visited set to a list
-        drawVisitedPositions(screen, visitedPositions)  # Draw visited positions
+        
+        # Draw all visited positions
+        # Turning this segment off improves speed
+        visitedPositions = list(visited)
+        drawVisitedPositions(screen, visitedPositions)
         p.display.flip()
 
         row, col = current
-
-        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, Down, Left, Right
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
         for dr, dc in directions:
-            next_row = row + dr
-            next_col = col + dc
-            next_pos = (next_row, next_col)
+            nextRow = row + dr
+            nextCol = col + dc
+            nextPos = (nextRow, nextCol)
 
             if (
-                0 <= next_row < maze.shape[0]
-                and 0 <= next_col < maze.shape[1]
-                and maze[next_row, next_col] == 0
-                and next_pos not in visited
+                0 <= nextRow < maze.shape[0]
+                and 0 <= nextCol < maze.shape[1]
+                and maze[nextRow, nextCol] == 0
+                and nextPos not in visited
             ):
-                queue.append((next_pos, path + [next_pos]))
-                visited.add(next_pos)
+                queue.append((nextPos, path + [nextPos]))
+                visited.add(nextPos)
 
     return solvedPath
 
